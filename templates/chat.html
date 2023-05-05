@@ -31,7 +31,11 @@
         <div class="container">
             <div id="chat-body" class="panel panel-default">
                 <div class="panel-heading" style="color: white; background: darkblue">Speech to text Chat Box</div>
-                <div id="msg-list-div" class="panel-body">
+                <label for='status'>Status</label>
+            <p id="status">Not Connected</p>
+            <label for='transcript'>Full Transcript</label>
+            <p id="transcript" class="text-right list-group-item"></p>
+                 <div id="msg-list-div" class="panel-body">
                     <ul id="msg-list" class="list-group">
                         {% for obj in chat %}
                             <b>{{ obj.user }}</b>
@@ -44,7 +48,7 @@
                             <li class="text-right list-group-item">No messages yet!</li>
                         {% endfor %}
                     </ul>
-                </div>
+                </div> 
             </div>
 
             <br>

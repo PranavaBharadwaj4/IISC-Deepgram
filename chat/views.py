@@ -5,19 +5,6 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
-from .util import transcribe
-
-DEEPGRAM_API_KEY = 'a54c31499dde506264b9dcbd795c9a0d8c54da20'
-
-# Location of the file you want to transcribe. Should include filename and extension.
-# Example of a local file: ../../Audio/life-moves-pretty-fast.wav
-# Example of a remote file: https://static.deepgram.com/examples/interview_speech-analytics.wav
-# FILE = './harvard.wav'
-
-# Mimetype for the file you want to transcribe
-# Include this line only if transcribing a local file
-# Example: audio/wav
-MIMETYPE = 'audio/wav'
 
 
 def home(request):
@@ -38,23 +25,13 @@ def upload(request):
     customHeader = request.META['HTTP_MYCUSTOMHEADER']
 
     # obviously handle correct naming of the file and place it somewhere like media/uploads/
-    filename = str(Chat.objects.count())
-    filename = filename + "name" + ".wav"
-    uploadedFile = open(filename, "wb")
-    # the actual file is in request.body
-    uploadedFile.write(request.body)
-    uploadedFile.close()
-    # put additional logic like creating a model instance or something like this here
-    # r = sr.Recognizer()
-    # harvard = sr.AudioFile(filename)
-    # with harvard as source:
-    #     audio = r.record(source)
-    # msg = r.recognize_google(audio)
-    # os.remove(filename)
-    msg =transcribe(filename, MIMETYPE, DEEPGRAM_API_KEY)
+    
+    msg = request.body.decode()
+    print(msg)
     chat_message = Chat(user=request.user, message=msg)
     if msg != '':
         chat_message.save()
+        print("none")
     return redirect('/')
 
 

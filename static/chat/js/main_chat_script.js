@@ -3,8 +3,9 @@ var mediaRecorder
 var l=0
 var end = false
 
+
             
-//this is the pause function that handles voice recording and sending.
+//this is the pause function that handles voice recording and sending. using the trancribe module in python
 function detectSilence(stream, onSoundEnd =_=>{}, onSoundStart =_=>{}, silence_delay = 2000, min_decibels = -80) {
     mediaRecorder = new MediaStreamRecorder(stream);
 
@@ -148,13 +149,77 @@ var mediaConstraints = {
 document.querySelector('#start-recording').onclick = function() {
     this.disabled = true;
     end=false
-    navigator.mediaDevices.getUserMedia({
-        audio: true
+    // navigator.mediaDevices.getUserMedia({
+    //     audio: true
+    //   })
+    //   .then(stream => {
+    //     detectSilence(stream, onSilence, onSpeak, 2000, -50);
+    //     // do something else with the stream
+    //   }).catch(e=>console.log(e));
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+        console.log({ stream })
+        if (!MediaRecorder.isTypeSupported('audio/webm'))
+          return alert('Browser not supported')
+        const mediaRecorder = new MediaRecorder(stream, {
+          mimeType: 'audio/webm',
+        })
+        const socket = new WebSocket('wss://api.deepgram.com/v1/listen', [
+          'token',
+          DEEPGRAM_API_KEY,
+        ])
+        socket.onopen = () => {
+          document.querySelector('#status').textContent = 'Connected'
+          console.log({ event: 'onopen' })
+          mediaRecorder.addEventListener('dataavailable', async (event) => {
+            if (event.data.size > 0 && socket.readyState == 1) {
+              socket.send(event.data)
+            }
+          })
+          mediaRecorder.start(1000)
+        }
+
+        socket.onmessage = (message) => {
+          const received = JSON.parse(message.data)
+          const transcript = received.channel.alternatives[0].transcript
+          if (transcript && received.is_final) {
+            console.log(transcript)
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie != '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = jQuery.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                
+                return cookieValue;
+            }
+            
+            var csrftoken = getCookie('csrftoken');
+            console.log("posting")
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'upload/', true);
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            xhr.setRequestHeader("MyCustomHeader", "Put anything you need in here, like an ID");
+            xhr.send(transcript);
+            document.querySelector('#transcript').textContent +=
+              transcript + ' '
+          }
+        }
+
+        socket.onclose = () => {
+          console.log({ event: 'onclose' })
+        }
+
+        socket.onerror = (error) => {
+          console.log({ event: 'onerror', error })
+        }
       })
-      .then(stream => {
-        detectSilence(stream, onSilence, onSpeak, 2000, -50);
-        // do something else with the stream
-      }).catch(e=>console.log(e));
 };
 
 document.querySelector('#stop-recording').onclick = function() {

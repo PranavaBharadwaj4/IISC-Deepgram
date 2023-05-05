@@ -85,6 +85,7 @@
 
 
 {% block content %}
+
     <header class="body-header">
         <div class="body-header__title">
             <h1 class="text-center">Speech To text live chat</h1>
@@ -106,6 +107,7 @@
 <script src="{% static 'chat/js/jquery-1.12.3.js' %}"></script>
 <script src="{% static 'chat/js/bootstrap.min.js' %}"></script>
 <script src="{% static 'chat/js/script.js' %}"></script>
-<script src="{% static 'chat/js/main_chat_script.js' %}"></script>
+{% comment %} <script src="{% static 'chat/js/main_chat_script.js' %}"></script> {% endcomment %}
+<script src="{% static 'chat/js/deepgram_script.js' %}"></script>
 </body>
 </html>
